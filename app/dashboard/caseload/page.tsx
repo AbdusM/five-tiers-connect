@@ -24,10 +24,17 @@ export default function CaseloadPage() {
     }, [])
 
     // Filter Logic
+    const stats = useMemo(() => {
+        const total = caseload.length
+        const atRisk = caseload.filter(m => (m.score || 0) < 50).length
+        const stable = caseload.filter(m => (m.score || 0) >= 80).length
+        const crisis = caseload.filter(m => m.status?.toLowerCase() === 'crisis').length
+        return { total, atRisk, stable, crisis }
+    }, [caseload])
+
     const filteredCaseload = useMemo(() => {
         return caseload
             .filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
-            // Service already returns sorted, but we re-sort to handle updates if needed
             .sort((a, b) => (a.score || 0) - (b.score || 0))
     }, [caseload, searchQuery])
 
@@ -36,7 +43,6 @@ export default function CaseloadPage() {
         setCaseload(prev => prev.map(m => {
             if (m.id === menteeId) {
                 const updated = { ...m, lastContact: new Date().toISOString() }
-                // Re-calculate score on client for instant feedback
                 updated.score = CaseloadService.calculateStrengthScore(updated)
                 return updated
             }
@@ -44,46 +50,68 @@ export default function CaseloadPage() {
         }))
     }
 
-    if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading caseload...</div>
+    if (isLoading) return <div className="p-8 text-center text-zinc-500 font-mono text-sm animate-pulse">Loading dossiers...</div>
 
     return (
-        <div className="relative min-h-[calc(100vh-4rem)] pb-20">
-            {/* Header / Search */}
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-4 pb-2 space-y-4">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold tracking-tight">My Caseload</h1>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-                        <Clock className="w-4 h-4" />
-                        <span>{filteredCaseload.length} Active</span>
+        <div className="relative min-h-[calc(100vh-4rem)] pb-20 animate-fade-up">
+            {/* Glass Header / Search */}
+            <div className="sticky top-0 z-30 pt-4 pb-6 -mx-4 px-4 md:-mx-8 md:px-8 bg-zinc-950/85 backdrop-blur-md border-b border-white/10 shadow-2xl">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-xs font-mono text-emerald-400 uppercase tracking-[0.25em]">Active Monitoring</h2>
+                        <h1 className="text-3xl font-serif text-white tracking-tight">My Caseload</h1>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-mono text-zinc-200 bg-zinc-900/80 border border-white/10 px-3 py-1.5 rounded-full">
+                        <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-200">{filteredCaseload.length} ACTIVE</span>
                     </div>
                 </div>
 
-                <div className="flex gap-2">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <div className="flex gap-3">
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500 group-focus-within:text-emerald-500 transition-colors" />
                         <Input
                             type="search"
-                            placeholder="Search mentees..."
-                            className="pl-8 bg-muted/50 border-0"
+                            placeholder="Search by name or code..."
+                            className="pl-9 bg-zinc-900/50 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/50 h-10"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <Button variant="outline" size="icon" className="shrink-0">
+                    <Button variant="outline" size="icon" className="shrink-0 border-white/10 bg-zinc-900/50 text-zinc-400 hover:text-white hover:bg-zinc-800">
                         <Filter className="w-4 h-4" />
                     </Button>
                 </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                    <div className="glass-panel border-white/10 rounded-xl p-3">
+                        <p className="text-[11px] uppercase text-zinc-400 font-mono">Total</p>
+                        <p className="text-2xl font-bold text-white">{stats.total}</p>
+                    </div>
+                    <div className="glass-panel border-white/10 rounded-xl p-3">
+                        <p className="text-[11px] uppercase text-amber-300 font-mono">At Risk</p>
+                        <p className="text-2xl font-bold text-amber-300">{stats.atRisk}</p>
+                    </div>
+                    <div className="glass-panel border-white/10 rounded-xl p-3">
+                        <p className="text-[11px] uppercase text-emerald-300 font-mono">Stable</p>
+                        <p className="text-2xl font-bold text-emerald-300">{stats.stable}</p>
+                    </div>
+                    <div className={`glass-panel border-white/10 rounded-xl p-3 ${stats.crisis > 0 ? 'animate-border-marquee relative overflow-hidden' : ''}`}>
+                        <p className="text-[11px] uppercase text-red-300 font-mono">Crisis</p>
+                        <p className="text-2xl font-bold text-red-300">{stats.crisis}</p>
+                    </div>
+                </div>
             </div>
 
-            {/* List Feed */}
-            <div className="space-y-3 mt-4">
+            {/* Dossier Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
                 {filteredCaseload.map((mentee) => (
                     <CaseloadCard key={mentee.id} mentee={mentee} />
                 ))}
             </div>
 
-            {/* Floating Action Button */}
-            <div className="fixed bottom-6 right-6 z-50">
+            {/* Floating Action Button - Modernized */}
+            <div className="fixed bottom-8 right-8 z-50">
+                <div className="absolute inset-0 bg-emerald-500 blur-xl opacity-20 rounded-full animate-pulse" />
                 <QuickLogDialog mentees={caseload} onLogSuccess={handleLogSuccess} />
             </div>
         </div>

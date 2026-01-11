@@ -38,23 +38,23 @@ export function RoadmapBoard() {
         {
             id: 'todo',
             title: 'To Do',
-            color: 'text-gray-700',
-            bg: 'bg-gray-50/80',
-            border: 'border-gray-200'
+            color: 'text-white',
+            bg: 'bg-zinc-900/85',
+            border: 'border-white/10'
         },
         {
             id: 'in-progress',
             title: 'Action Plan',
-            color: 'text-blue-700',
-            bg: 'bg-blue-50/50',
-            border: 'border-blue-200'
+            color: 'text-white',
+            bg: 'bg-indigo-950/80',
+            border: 'border-indigo-200/40'
         },
         {
             id: 'done',
             title: 'Achievements',
-            color: 'text-green-700',
-            bg: 'bg-green-50/50',
-            border: 'border-green-200'
+            color: 'text-white',
+            bg: 'bg-emerald-950/80',
+            border: 'border-emerald-200/40'
         }
     ]
 
@@ -62,18 +62,18 @@ export function RoadmapBoard() {
         <div className="h-full flex flex-col">
             {/* Header / Stats */}
             <div className="flex justify-between items-center mb-6 px-1">
-                <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-yellow-100 rounded-full shadow-sm">
-                        <Trophy className="w-5 h-5 text-yellow-600" />
+                <div className="flex items-center space-x-3">
+                    <div className="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+                        <Trophy className="w-5 h-5 text-amber-400" />
                     </div>
                     <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Total Strength</p>
-                        <p className="text-2xl font-black text-gray-900 leading-none">{totalPoints} pts</p>
+                        <p className="text-[10px] text-zinc-400 font-mono font-bold uppercase tracking-widest mb-0.5">Total Strength</p>
+                        <p className="text-3xl font-bold text-white font-sans tracking-tight">{totalPoints} <span className="text-sm font-normal text-zinc-500 font-mono">pts</span></p>
                     </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={refreshGoals} disabled={isLoading} className="border-gray-200">
-                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                    Refresh
+                <Button variant="outline" size="sm" onClick={refreshGoals} disabled={isLoading} className="border-white/10 bg-zinc-900/50 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
+                    <RefreshCw className={`w-3.5 h-3.5 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                    Refresh Board
                 </Button>
             </div>
 
@@ -83,11 +83,11 @@ export function RoadmapBoard() {
                     {columns.map(col => {
                         const colGoals = goals.filter(g => g.status === col.id)
                         return (
-                            <div key={col.id} className={`flex-1 min-w-0 flex flex-col rounded-xl border ${col.border} ${col.bg} overflow-hidden shadow-sm`}>
+                            <div key={col.id} className={`flex-1 min-w-0 flex flex-col rounded-xl border ${col.border} ${col.bg} overflow-hidden shadow-md`}>
                                 {/* Column Header */}
-                                <div className={`flex justify-between items-center p-4 border-b ${col.border} bg-white/50 backdrop-blur-sm`}>
+                                <div className={`flex justify-between items-center p-4 border-b ${col.border} bg-white/5 backdrop-blur-sm`}>
                                     <h3 className={`font-bold ${col.color} text-lg`}>{col.title}</h3>
-                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold bg-white border ${col.border} ${col.color}`}>
+                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold bg-white/10 border ${col.border} ${col.color}`}>
                                         {colGoals.length}
                                     </span>
                                 </div>
@@ -95,7 +95,7 @@ export function RoadmapBoard() {
                                 {/* Column Body */}
                                 <div className="flex-1 p-3 overflow-y-auto custom-scrollbar">
                                     {colGoals.length === 0 ? (
-                                        <div className="h-32 flex flex-col items-center justify-center text-sm text-gray-400 border-2 border-dashed border-gray-200/50 rounded-lg m-2">
+                                        <div className="h-32 flex flex-col items-center justify-center text-sm text-zinc-300 border-2 border-dashed border-white/15 rounded-lg m-2">
                                             <p>No items</p>
                                         </div>
                                     ) : (

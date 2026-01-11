@@ -21,7 +21,8 @@ import {
     X,
     LayoutDashboard,
     UserCheck,
-    Heart
+    Heart,
+    TrendingUp
 } from 'lucide-react'
 
 interface NavItem {
@@ -41,6 +42,7 @@ const navSections: NavSection[] = [
         title: 'Overview',
         items: [
             { href: '/dashboard', label: 'Dashboard', icon: <Home className="w-5 h-5" /> },
+            { href: '/dashboard/timeline', label: 'Timeline', icon: <TrendingUp className="w-5 h-5" /> },
             { href: '/dashboard/roadmap', label: 'My Roadmap', icon: <BarChart3 className="w-5 h-5" /> },
             { href: '/dashboard/caseload', label: 'Caseload', icon: <Users className="w-5 h-5" />, roles: ['admin'] },
         ]
@@ -53,7 +55,9 @@ const navSections: NavSection[] = [
             { href: '/dashboard/contacts', label: 'My Team', icon: <Users className="w-5 h-5" />, roles: ['cohort', 'admin'] },
             { href: '/dashboard/check-in', label: 'Daily Check-In', icon: <UserCheck className="w-5 h-5" />, roles: ['cohort', 'admin'] },
             { href: '/dashboard/vouchers', label: 'Vouchers', icon: <Ticket className="w-5 h-5" />, roles: ['cohort', 'admin'] },
+            { href: '/dashboard/receipts', label: 'Receipts', icon: <Ticket className="w-5 h-5" /> },
             { href: '/dashboard/resources', label: 'Community Resources', icon: <Heart className="w-5 h-5" />, roles: ['cohort', 'admin'] },
+            { href: '/dev-mode', label: 'Help & Docs', icon: <LayoutDashboard className="w-5 h-5" /> },
         ]
     }
 ]
@@ -103,15 +107,16 @@ export function MobileNav({ userRole = 'community' }: { userRole?: string }) {
                     <div className="p-4 space-y-6">
                         {filteredSections.map((section, idx) => (
                             <div key={idx}>
-                                <h3 className="mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                <h3 className="mb-2 text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                     {section.title}
                                 </h3>
                                 <div className="space-y-1">
                                     {section.items.map((item) => {
                                         const isActive = pathname === item.href
                                         return (
-                                            <Link key={item.href} href={item.href}>
+                                        <Link key={item.href} href={item.href} data-nav-link={item.label.toLowerCase()}>
                                                 <Button
+                                                data-nav-label={item.label.toLowerCase()}
                                                     variant={isActive ? 'secondary' : 'ghost'}
                                                     className={`w-full justify-start h-12 text-lg mb-1 ${isActive
                                                         ? 'bg-indigo-50 text-indigo-700'

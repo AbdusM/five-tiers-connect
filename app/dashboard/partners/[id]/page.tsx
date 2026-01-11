@@ -21,7 +21,8 @@ import {
   RefreshCw,
   Building2,
   CheckCircle2,
-  X
+  X,
+  Star
 } from 'lucide-react'
 import type { Business, BusinessHours } from '@/types/database'
 import { formatPhoneNumber, formatAddress, getMapsUrl } from '@/lib/utils'
@@ -38,6 +39,11 @@ export default function PartnerDetailPage() {
   const [shareStatus, setShareStatus] = useState<'idle' | 'sharing' | 'success' | 'error'>('idle')
   const [shareMessage, setShareMessage] = useState<string>('')
   const shareTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [reviews, setReviews] = useState<Array<{ id: string; rating: number; text: string; created_at?: string }>>([])
+  const [reviewText, setReviewText] = useState('')
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+  const [reviewSuccess, setReviewSuccess] = useState(false)
 
   const supabase = createClient()
   
@@ -85,6 +91,36 @@ export default function PartnerDetailPage() {
     }
 
     loadBusiness()
+  }, [businessId, supabase])
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (typeof window !== 'undefined' && !user) {
+          // demo mode fallback if present
+          const { demoReviews } = await import('@/lib/demo-data')
+          setReviews(demoReviews.filter((r) => r.business_id === businessId))
+          return
+        }
+
+        const { data, error: fetchError } = await supabase
+          .from('reviews')
+          .select('id, rating, text, created_at')
+          .eq('business_id', businessId)
+          .order('created_at', { ascending: false })
+
+        if (fetchError) {
+          console.warn('Reviews fetch error (non-blocking):', fetchError.message)
+          return
+        }
+        if (data) setReviews(data as any)
+      } catch (err) {
+        console.warn('Reviews load skipped:', err)
+      }
+    }
+
+    loadReviews()
   }, [businessId, supabase])
 
   const handleShare = async () => {
@@ -144,6 +180,51 @@ export default function PartnerDetailPage() {
         setShareMessage('')
         shareTimeoutRef.current = null
       }, 3000)
+    }
+  }
+
+  const handleSubmitReview = async () => {
+    setReviewError(null)
+    setReviewSuccess(false)
+    if (!reviewText.trim()) {
+      setReviewError('Please add a short note (few words is fine).')
+      return
+    }
+    if (reviewRating < 1 || reviewRating > 5) {
+      setReviewError('Rating must be between 1 and 5.')
+      return
+    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setReviewError('Sign in to add a review.')
+        return
+      }
+      const { error: insertError } = await supabase
+        .from('reviews')
+        .insert({
+          business_id: businessId,
+          user_id: user.id,
+          rating: reviewRating,
+          text: reviewText,
+        })
+      if (insertError) {
+        setReviewError(insertError.message)
+        return
+      }
+      setReviewSuccess(true)
+      setReviewText('')
+      setReviewRating(5)
+      // reload reviews
+      const { data } = await supabase
+        .from('reviews')
+        .select('id, rating, text, created_at')
+        .eq('business_id', businessId)
+        .order('created_at', { ascending: false })
+      if (data) setReviews(data as any)
+      setTimeout(() => setReviewSuccess(false), 2000)
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Unable to submit review right now.')
     }
   }
 
@@ -258,7 +339,20 @@ export default function PartnerDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="relative">
+            <div className="flex flex-col items-end gap-3 relative">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-yellow-500">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-500" />
+                  ))}
+                </div>
+                <div className="text-sm text-gray-600">
+                  4.9 · 128 reviews
+                </div>
+              </div>
+              <Button variant="outline" className="h-10 px-4 text-sm">
+                Add Review
+              </Button>
               <Button
                 variant="outline"
                 size="lg"
@@ -425,6 +519,75 @@ export default function PartnerDetailPage() {
             <Navigation className="w-5 h-5 mr-2" />
             Get Directions
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Reviews */}
+      <Card id="reviews">
+        <CardHeader>
+          <CardTitle className="text-xl">Reviews</CardTitle>
+          <CardDescription>What people say about this partner.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {reviews.length === 0 ? (
+            <p className="text-gray-600">No reviews yet. Be the first to add one.</p>
+          ) : (
+            <div className="space-y-4">
+              {reviews.slice(0, 4).map((r) => (
+                <div key={r.id} className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-1 text-yellow-500">
+                      {Array.from({ length: r.rating }).map((_, idx) => (
+                        <Star key={idx} className="w-4 h-4 fill-yellow-400 text-yellow-500" />
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-800">{r.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <h4 className="text-lg font-semibold">Add a review</h4>
+            {reviewError && (
+              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                {reviewError}
+              </div>
+            )}
+            {reviewSuccess && (
+              <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+                Review submitted!
+              </div>
+            )}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-700">Rating</label>
+              <select
+                value={reviewRating}
+                onChange={(e) => setReviewRating(Number(e.target.value))}
+                className="border rounded-md p-2 text-sm"
+              >
+                {[5,4,3,2,1].map((r) => (
+                  <option key={r} value={r}>{r} stars</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-700">Your review</label>
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                className="w-full border rounded-md p-3 text-sm min-h-[100px]"
+                placeholder="Share your experience..."
+              />
+            </div>
+            <Button className="w-full h-12" onClick={handleSubmitReview}>
+              Submit Review
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

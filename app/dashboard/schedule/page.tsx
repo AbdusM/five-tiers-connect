@@ -13,6 +13,8 @@ import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { CalendarIcon, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
 import type { Appointment, Business } from '@/types/database'
+import { isDemoMode } from '@/lib/demo-mode'
+import { demoAppointments, demoBusinesses } from '@/lib/demo-data'
 
 interface AppointmentWithBusiness extends Appointment {
   business?: Business
@@ -41,8 +43,13 @@ export default function SchedulePage() {
       setLoadingData(true)
       setError(null)
       const { data: { user } } = await supabase.auth.getUser()
-      // TEST MODE: Allow access without user - just show empty state
-      // if (!user) return
+
+      if (typeof window !== 'undefined' && isDemoMode()) {
+        setBusinesses(demoBusinesses)
+        setAppointments(demoAppointments as AppointmentWithBusiness[])
+        setLoadingData(false)
+        return
+      }
 
       // Load appointments (only if user exists)
       const { data: appointmentsData, error: appointmentsError } = user
@@ -191,7 +198,7 @@ export default function SchedulePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold text-gray-900">Schedule Appointment</h1>
-          <p className="text-gray-600 mt-2">Book your visit with a trusted partner</p>
+          <p className="text-gray-600 mt-2">Book your visit with a trusted partner in two quick steps.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>

@@ -17,7 +17,8 @@ import {
     Heart,
     Sparkles,
     Zap,
-    Target
+    Target,
+    TrendingUp
 } from 'lucide-react'
 
 // Lux Story Style Integration
@@ -43,6 +44,7 @@ const navSections: NavSection[] = [
         title: 'CORE RESONANCE', // Was 'Overview'
         items: [
             { href: '/dashboard', label: 'Dashboard', icon: <Home className="w-4 h-4" /> },
+            { href: '/dashboard/timeline', label: 'Timeline', icon: <TrendingUp className="w-4 h-4" /> },
             { href: '/dashboard/roadmap', label: 'Life Path', icon: <Target className="w-4 h-4" />, badge: 'Lvl 2' }, // Renamed Roadmap -> Life Path
             { href: '/dashboard/caseload', label: 'Caseload', icon: <Users className="w-4 h-4" />, roles: ['admin'], badge: 'Active' },
         ]
@@ -56,6 +58,7 @@ const navSections: NavSection[] = [
             { href: '/dashboard/check-in', label: 'Daily Alignment', icon: <Zap className="w-4 h-4" />, roles: ['cohort', 'admin'] }, // Renamed Check-in -> Alignment
             { href: '/dashboard/vouchers', label: 'Resource Vouchers', icon: <Ticket className="w-4 h-4" />, roles: ['cohort', 'admin'] },
             { href: '/dashboard/resources', label: 'Knowledge Base', icon: <Heart className="w-4 h-4" />, roles: ['cohort', 'admin'] },
+            { href: '/dashboard/receipts', label: 'Receipts', icon: <Ticket className="w-4 h-4" /> },
         ]
     }
 ]
@@ -92,15 +95,16 @@ export function SidebarNav({ userRole = 'community' }: { userRole?: string }) {
                 {filteredSections.map((section, idx) => (
                     <div key={idx}>
                         {/* Section Header: Mono, Spaced, Subtle */}
-                        <h3 className="mb-4 px-4 text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-[0.2em]">
+                        <h3 className="mb-4 px-4 text-[10px] font-mono font-bold text-zinc-200 uppercase tracking-[0.2em]">
                             {section.title}
                         </h3>
                         <div className="space-y-2">
                             {section.items.map((item) => {
                                 const isActive = pathname === item.href
                                 return (
-                                    <Link key={item.href} href={item.href}>
+                                    <Link key={item.href} href={item.href} data-nav-link={item.label.toLowerCase()}>
                                         <div
+                                            data-nav-label={item.label.toLowerCase()}
                                             className={`group relative flex items-center justify-between w-full p-3 rounded-lg text-sm transition-all duration-300 border ${isActive
                                                 ? 'bg-zinc-900 border-emerald-500/50 text-white shadow-[0_0_15px_rgba(16,185,129,0.1)]'
                                                 : 'bg-transparent border-transparent text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200 hover:border-white/5'
@@ -140,6 +144,11 @@ export function SidebarNav({ userRole = 'community' }: { userRole?: string }) {
 
             {/* Footer / User Profile Area */}
             <div className="p-4 border-t border-white/10 bg-zinc-900/50">
+                <Link href="/dev-mode">
+                    <div className="w-full mb-3 rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-200 hover:border-emerald-400/40 hover:text-white transition-colors">
+                        Help & Docs
+                    </div>
+                </Link>
                 <Button
                     variant="ghost"
                     className="w-full justify-start text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors h-12"

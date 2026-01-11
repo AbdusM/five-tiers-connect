@@ -36,7 +36,7 @@ export default function ContactsPage() {
     // Invoke native dialer or VoIP service
   }
 
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading Support Circle...</div>
+  if (isLoading) return <div className="p-8 text-center text-zinc-400">Loading Support Circle...</div>
 
   const primaryContacts = contacts.filter(c => c.is_primary)
   const networkContacts = contacts.filter(c => !c.is_primary)
@@ -45,11 +45,11 @@ export default function ContactsPage() {
     <div className="space-y-8 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-            <Shield className="w-10 h-10 text-indigo-600" />
+          <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+            <Shield className="w-10 h-10 text-purple-400" />
             My Team
           </h1>
-          <p className="text-lg text-gray-600 mt-2">
+          <p className="text-lg text-zinc-400 mt-2">
             Your personal board of directors.
           </p>
         </div>
@@ -57,12 +57,12 @@ export default function ContactsPage() {
       </div>
 
       {contacts.length === 0 ? (
-        <Card className="border-dashed border-2 border-gray-200">
-          <CardContent className="py-16 text-center text-gray-500">
-            <div className="bg-indigo-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <HeartHandshake className="w-10 h-10 text-indigo-500" />
+        <Card className="glass-panel border-dashed border-2 border-zinc-700">
+          <CardContent className="py-16 text-center text-zinc-400">
+            <div className="bg-purple-500/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <HeartHandshake className="w-10 h-10 text-purple-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">Build Your Circle</h3>
+            <h3 className="text-xl font-semibold text-white">Build Your Circle</h3>
             <p className="mt-2 mb-6 max-w-sm mx-auto">
               Add mentors, family members, or parole officers who support your success.
             </p>
@@ -72,9 +72,9 @@ export default function ContactsPage() {
         <div className="space-y-8">
           {/* Lifelines Section */}
           {primaryContacts.length > 0 && (
-            <div className="bg-yellow-50/50 border border-yellow-100 rounded-2xl p-6">
-              <h2 className="text-xl font-bold text-yellow-800 mb-4 flex items-center gap-2">
-                <span className="bg-yellow-100 p-1.5 rounded-lg">⭐</span>
+            <div className="glass-panel border border-amber-500/30 rounded-2xl p-6 animate-border-marquee relative overflow-hidden">
+              <h2 className="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+                <span className="bg-amber-500/20 p-1.5 rounded-lg text-amber-400">⭐</span>
                 My Top 5 Lifelines
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
@@ -93,7 +93,7 @@ export default function ContactsPage() {
           {/* Extended Network Section */}
           {networkContacts.length > 0 && (
             <div>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 pl-1">Extended Network</h2>
+              <h2 className="text-xl font-bold text-zinc-300 mb-4 pl-1">Extended Network</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 {networkContacts.map((contact) => (
                   <ContactCard

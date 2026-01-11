@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { MessageCircle, CheckCircle2, Clock } from 'lucide-react'
+import { isDemoMode } from '@/lib/demo-mode'
+import { demoCheckIns } from '@/lib/demo-data'
 
 export default function CheckInPage() {
   const [checkIns, setCheckIns] = useState<any[]>([])
@@ -26,6 +28,11 @@ export default function CheckInPage() {
   }, [])
 
   const loadCheckIns = async () => {
+    if (typeof window !== 'undefined' && isDemoMode()) {
+      setCheckIns(demoCheckIns as any[])
+      return
+    }
+
     const { data: { user } } = await supabase.auth.getUser()
     // TEST MODE: Show empty state if no user
     if (!user) {
@@ -104,8 +111,8 @@ export default function CheckInPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-4xl font-bold text-gray-900">Request Check-In</h1>
-        <p className="text-gray-600 mt-2">Request a supportive check-in from Five Tiers staff</p>
+        <h1 className="text-4xl font-bold text-white">Request Check-In</h1>
+        <p className="text-zinc-300 mt-2">Request a supportive check-in from Five Tiers staff</p>
       </div>
 
       <Card>

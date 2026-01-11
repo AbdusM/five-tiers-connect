@@ -49,43 +49,43 @@ export function GuiltyReminderWidget() {
     }
 
     return (
-        <Card className="mb-8 border-none bg-white shadow-sm ring-1 ring-gray-200/50">
-            <CardHeader className="pb-3 border-b border-gray-100 flex flex-row items-center justify-between">
+        <Card className="mb-8 border border-white/10 bg-zinc-900/90 text-zinc-100 shadow-lg">
+            <CardHeader className="pb-3 border-b border-white/10 flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                    <div className="p-2 bg-amber-50 rounded-lg">
-                        <Clock className="w-5 h-5 text-amber-600" />
+                    <div className="p-2 bg-emerald-500/15 rounded-lg border border-emerald-300/30">
+                        <Clock className="w-5 h-5 text-emerald-300" />
                     </div>
                     <div>
-                        <CardTitle className="text-base font-semibold text-gray-900">Relationship Maintenance</CardTitle>
-                        <p className="text-sm text-gray-500 font-normal">
-                            {overdueContacts.length} contacts due for a catch-up
+                        <CardTitle className="text-base font-semibold text-zinc-50">Relationship Maintenance</CardTitle>
+                        <p className="text-sm text-zinc-300 font-normal">
+                            {overdueContacts.length} contact{overdueContacts.length === 1 ? '' : 's'} due for a catch-up
                         </p>
                     </div>
                 </div>
                 <Link href="/dashboard/contacts">
-                    <Button variant="ghost" size="sm" className="text-gray-500 hover:text-indigo-600">
+                    <Button variant="ghost" size="sm" className="text-zinc-200 hover:text-white hover:bg-white/5">
                         View All <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
                 </Link>
             </CardHeader>
             <CardContent className="p-0">
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-white/5">
                     {overdueContacts.slice(0, 3).map((contact) => (
-                        <div key={contact.id} className="p-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors group">
+                        <div key={contact.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-semibold text-sm">
+                                <div className="w-10 h-10 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-200 font-semibold text-sm">
                                     {contact.name.charAt(0)}
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-sm text-gray-900 group-hover:text-indigo-700 transition-colors">
+                                    <h4 className="font-semibold text-sm text-zinc-50 group-hover:text-emerald-200 transition-colors">
                                         {contact.name}
                                     </h4>
                                     <div className="flex items-center gap-2 mt-0.5">
-                                        <span className="text-xs text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded">
+                                        <span className="text-xs text-amber-200 font-semibold bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-300/40">
                                             {contact.daysOverdue} days since last chat
                                         </span>
                                         {contact.origin && (
-                                            <span className="text-xs text-gray-400 truncate max-w-[150px]">
+                                            <span className="text-xs text-zinc-400 truncate max-w-[150px]">
                                                 • {contact.origin}
                                             </span>
                                         )}
@@ -93,7 +93,7 @@ export function GuiltyReminderWidget() {
                                 </div>
                             </div>
                             <Link href="/dashboard/contacts">
-                                <Button size="sm" variant="outline" className="h-9 border-gray-200 text-gray-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">
+                                <Button size="sm" variant="outline" className="h-9 border-white/15 text-zinc-100 hover:border-emerald-300/60 hover:bg-emerald-500/15">
                                     <Phone className="w-3.5 h-3.5 mr-2" />
                                     Connect
                                 </Button>

@@ -30,9 +30,11 @@ const navItems: NavItem[] = [
   { href: '/dashboard/partners', label: 'Partners', icon: <Building2 className="w-5 h-5" /> },
   { href: '/dashboard/contacts', label: 'Contacts', icon: <Users className="w-5 h-5" />, roles: ['cohort', 'admin'] },
   { href: '/dashboard/vouchers', label: 'Vouchers', icon: <Ticket className="w-5 h-5" />, roles: ['cohort', 'admin'] },
+  { href: '/dashboard/receipts', label: 'Receipts', icon: <Ticket className="w-5 h-5" /> },
   { href: '/dashboard/check-in', label: 'Check-In', icon: <MessageCircle className="w-5 h-5" />, roles: ['cohort', 'admin'] },
   { href: '/dashboard/crisis', label: 'Crisis Support', icon: <AlertCircle className="w-5 h-5" />, roles: ['cohort', 'admin'] },
   { href: '/dashboard/analytics', label: 'Analytics', icon: <BarChart3 className="w-5 h-5" />, roles: ['admin'] },
+  { href: '/dev-mode', label: 'Help & Docs', icon: <BarChart3 className="w-5 h-5" /> },
 ]
 
 export function DashboardNav({ userRole }: { userRole: string }) {
@@ -65,8 +67,9 @@ export function DashboardNav({ userRole }: { userRole: string }) {
               {filteredNavItems.map((item) => {
                 const isActive = pathname === item.href
                 return (
-                  <Link key={item.href} href={item.href}>
+                  <Link key={item.href} href={item.href} data-nav-link={item.label.toLowerCase()}>
                     <Button
+                      data-nav-label={item.label.toLowerCase()}
                       variant={isActive ? 'default' : 'ghost'}
                       className="h-12 px-4"
                     >

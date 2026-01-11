@@ -4,16 +4,19 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
-import { Ticket, CheckCircle2 } from 'lucide-react'
+import { Ticket, CheckCircle2, Calendar, Building2, ArrowRight, Sparkles, Clock } from 'lucide-react'
+import { isDemoMode } from '@/lib/demo-mode'
+import { demoVouchers, demoBusinesses } from '@/lib/demo-data'
+import Link from 'next/link'
 
 export default function VouchersPage() {
   const [vouchers, setVouchers] = useState<any[]>([])
   const [businesses, setBusinesses] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'used' | 'expired'>('all')
 
   const supabase = createClient()
 
@@ -22,46 +25,21 @@ export default function VouchersPage() {
   }, [])
 
   const loadData = async () => {
-    // Check local storage for persistent mock data (or generate if empty)
-    if (typeof window !== 'undefined') {
-      const storedVouchers = localStorage.getItem('vouchers_data')
-      if (storedVouchers) {
-        setVouchers(JSON.parse(storedVouchers))
-        setLoading(false)
-        return
-      }
+    setLoading(true)
+    // Demo mode: use canned vouchers
+    if (typeof window !== 'undefined' && isDemoMode()) {
+      setVouchers(demoVouchers as any[])
+      setBusinesses(demoBusinesses as any[])
+      setLoading(false)
+      return
     }
 
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      // DEV MODE / GUEST: Provide Mock Vouchers
-      const mockVouchers = [
-        {
-          id: 'v1',
-          business: { name: 'Fresh Cuts Barbershop' },
-          amount: 25,
-          created_at: '2025-09-01T10:00:00Z',
-          expires_at: '2025-12-31T23:59:59Z',
-          status: 'active',
-          cohort_member_id: 'guest'
-        },
-        {
-          id: 'v2',
-          business: { name: 'Men\'s Wearhouse' },
-          amount: 150,
-          created_at: '2025-08-15T09:00:00Z',
-          expires_at: '2025-11-30T23:59:59Z',
-          status: 'used',
-          used_at: '2025-10-01T14:00:00Z',
-          cohort_member_id: 'guest'
-        }
-      ] as any[]
-
-      setVouchers(mockVouchers)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('vouchers_data', JSON.stringify(mockVouchers))
-      }
+      console.log('No user found, using demo data')
+      setVouchers(demoVouchers as any[])
+      setBusinesses(demoBusinesses as any[])
       setLoading(false)
       return
     }
@@ -83,89 +61,190 @@ export default function VouchersPage() {
       .order('name')
 
     if (businessesData) setBusinesses(businessesData)
+    setLoading(false)
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800'
+        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
       case 'used':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
       case 'expired':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'
     }
   }
 
+  const filteredVouchers = vouchers.filter(v => {
+    if (activeTab === 'all') return true
+    return v.status === activeTab
+  })
+
+  const activeCount = vouchers.filter(v => v.status === 'active').length
+  const usedCount = vouchers.filter(v => v.status === 'used').length
+  const expiredCount = vouchers.filter(v => v.status === 'expired').length
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12">
+      {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold text-gray-900">My Vouchers</h1>
-        <p className="text-gray-600 mt-2">Manage your service vouchers for partner businesses</p>
+        <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+          <Ticket className="w-10 h-10 text-purple-400" />
+          My Vouchers
+        </h1>
+        <p className="text-zinc-400 mt-2 text-lg">
+          Manage your service vouchers for partner businesses. Use them to book appointments with barbershops, salons, and other community partners.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Vouchers</CardTitle>
-          <CardDescription>View and use your available vouchers</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {vouchers.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Ticket className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <p>No vouchers available at this time.</p>
-              <p className="text-sm mt-2">Contact your administrator to request vouchers.</p>
-            </div>
+      {/* Stats Summary */}
+      {vouchers.length > 0 && (
+        <div className="grid grid-cols-3 gap-4">
+          <Card className="glass-panel border-white/10">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">Active</p>
+                  <p className="text-2xl font-bold text-emerald-400 mt-1">{activeCount}</p>
+                </div>
+                <Sparkles className="w-8 h-8 text-emerald-400/30" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="glass-panel border-white/10">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">Used</p>
+                  <p className="text-2xl font-bold text-blue-400 mt-1">{usedCount}</p>
+                </div>
+                <CheckCircle2 className="w-8 h-8 text-blue-400/30" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="glass-panel border-white/10">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">Expired</p>
+                  <p className="text-2xl font-bold text-zinc-400 mt-1">{expiredCount}</p>
+                </div>
+                <Calendar className="w-8 h-8 text-zinc-400/30" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Tabs and Vouchers List */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 h-auto mb-6 gap-2 bg-zinc-900/50 border border-white/10">
+          <TabsTrigger value="all" className="py-2 text-sm data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 data-[state=active]:border-purple-500/30">
+            All ({vouchers.length})
+          </TabsTrigger>
+          <TabsTrigger value="active" className="py-2 text-sm data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 data-[state=active]:border-emerald-500/30">
+            Active ({activeCount})
+          </TabsTrigger>
+          <TabsTrigger value="used" className="py-2 text-sm data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 data-[state=active]:border-blue-500/30">
+            Used ({usedCount})
+          </TabsTrigger>
+          <TabsTrigger value="expired" className="py-2 text-sm data-[state=active]:bg-zinc-500/20 data-[state=active]:text-zinc-400 data-[state=active]:border-zinc-500/30">
+            Expired ({expiredCount})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={activeTab} className="space-y-4">
+          {loading ? (
+            <Card className="glass-panel border-white/10">
+              <CardContent className="py-12 text-center text-zinc-400">
+                Loading vouchers...
+              </CardContent>
+            </Card>
+          ) : filteredVouchers.length === 0 ? (
+            <Card className="glass-panel border-white/10">
+              <CardContent className="py-16 text-center">
+                <Ticket className="w-16 h-16 mx-auto mb-4 text-zinc-600" />
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  {activeTab === 'all' ? 'No vouchers yet' : `No ${activeTab} vouchers`}
+                </h3>
+                <p className="text-zinc-400 max-w-sm mx-auto">
+                  {activeTab === 'all'
+                    ? 'You don\'t have any vouchers at this time. Contact your administrator to request vouchers for partner services.'
+                    : activeTab === 'active'
+                      ? 'You don\'t have any active vouchers. Check your used or expired vouchers, or contact support for new ones.'
+                      : `You don't have any ${activeTab} vouchers.`
+                  }
+                </p>
+                {activeTab === 'active' && (
+                  <Link href="/dashboard/partners">
+                    <Button className="mt-6 bg-purple-500 hover:bg-purple-600 text-white">
+                      Browse Partners
+                    </Button>
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
           ) : (
             <div className="space-y-4">
-              {vouchers.map((voucher) => (
-                <div
-                  key={voucher.id}
-                  className="flex items-center justify-between p-6 border rounded-lg hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start space-x-4 flex-1">
-                    <div className="bg-indigo-100 p-3 rounded-lg">
-                      <Ticket className="w-6 h-6 text-indigo-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold">
-                        {voucher.business?.name || 'Unknown Business'}
+              {filteredVouchers.map((voucher) => (
+                <div key={voucher.id} className="glass-panel p-5 rounded-xl border border-white/10 relative overflow-hidden group hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] transition-all duration-300">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      {/* Status Chip */}
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase tracking-wider ${voucher.status === 'active'
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        : 'bg-zinc-800 text-zinc-500 border-zinc-700'
+                        }`}>
+                        {voucher.status}
+                      </span>
+                      <h3 className="text-lg font-bold text-white mt-2 group-hover:text-purple-300 transition-colors">
+                        {voucher.amount}
                       </h3>
-                      <p className="text-gray-600">
-                        ${voucher.amount} voucher
+                      <p className="text-sm text-zinc-300 font-medium">
+                        {voucher.serviceType || 'Service Voucher'}
                       </p>
-                      {voucher.expires_at && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Expires: {format(new Date(voucher.expires_at), 'MMM d, yyyy')}
-                        </p>
-                      )}
-                      {voucher.used_at && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          Used: {format(new Date(voucher.used_at), 'MMM d, yyyy')}
-                        </p>
-                      )}
+                      <p className="text-xs text-zinc-500 mt-1">
+                        {voucher.business?.name || 'Unknown Business'}
+                      </p>
+                    </div>
+                    <div className="bg-zinc-800/50 p-2 rounded-lg border border-white/5">
+                      <Ticket className="w-5 h-5 text-purple-400/80" />
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <Badge className={getStatusColor(voucher.status)}>
-                      {voucher.status}
-                    </Badge>
-                    {voucher.status === 'active' && (
-                      <Button
-                        onClick={() => window.location.href = '/dashboard/schedule'}
-                        className="h-12 px-6"
-                      >
-                        Use Voucher
-                      </Button>
-                    )}
+
+                  {/* Insight Line */}
+                  <div className="mb-4 pt-2 border-t border-white/5">
+                    <p className="text-xs font-mono text-zinc-400 flex items-center gap-2">
+                      <Clock className="w-3 h-3" />
+                      {(() => {
+                        if (!voucher.expires_at) return 'No expiration'
+                        const days = Math.ceil((new Date(voucher.expires_at).getTime() - new Date().getTime()) / (1000 * 3600 * 24))
+                        if (days < 0) return 'Expired'
+                        if (days < 7) return <span className="text-amber-400">Expires in {days} days — act soon</span>
+                        return <span>Valid for {days} more days</span>
+                      })()}
+                    </p>
                   </div>
+
+                  {voucher.status === 'active' ? (
+                    <Link href="/dashboard/schedule" className="block">
+                      <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 h-10">
+                        Use Voucher <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button disabled className="w-full bg-zinc-800/50 text-zinc-500 border border-white/5 h-10">
+                      {voucher.status === 'used' ? 'Redeemed' : 'Expired'}
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

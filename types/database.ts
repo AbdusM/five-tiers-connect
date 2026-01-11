@@ -125,3 +125,27 @@ export interface PartnerApplication {
   created_at: string
   updated_at: string
 }
+
+export interface Review {
+  id: string
+  business_id: string
+  user_id: string
+  rating: number
+  text?: string
+  created_at: string
+}
+
+export interface Receipt {
+  id: string
+  user_id: string
+  appointment_id?: string
+  voucher_id?: string
+  merchant?: string
+  amount?: number
+  date?: string
+  category?: string
+  status: 'pending' | 'processed'
+  raw_data?: unknown
+  created_at: string
+  updated_at: string
+}

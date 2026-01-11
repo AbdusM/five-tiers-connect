@@ -134,6 +134,32 @@ CREATE TABLE IF NOT EXISTS partner_applications (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Reviews table
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  text TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Receipts table
+CREATE TABLE IF NOT EXISTS receipts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
+  voucher_id UUID REFERENCES vouchers(id) ON DELETE SET NULL,
+  merchant TEXT,
+  amount DECIMAL(10, 2),
+  date DATE,
+  category TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processed')),
+  raw_data JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON appointments(user_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_business_id ON appointments(business_id);
@@ -147,6 +173,10 @@ CREATE INDEX IF NOT EXISTS idx_invite_codes_code ON invite_codes(code);
 CREATE INDEX IF NOT EXISTS idx_check_ins_user_id ON check_ins(user_id);
 CREATE INDEX IF NOT EXISTS idx_trusted_contacts_user_id ON trusted_contacts(user_id);
 CREATE INDEX IF NOT EXISTS idx_partner_applications_status ON partner_applications(status);
+CREATE INDEX IF NOT EXISTS idx_reviews_business_id ON reviews(business_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews(user_id);
+CREATE INDEX IF NOT EXISTS idx_receipts_user_id ON receipts(user_id);
+CREATE INDEX IF NOT EXISTS idx_receipts_date ON receipts(date);
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -182,6 +212,9 @@ CREATE TRIGGER update_trusted_contacts_updated_at BEFORE UPDATE ON trusted_conta
 CREATE TRIGGER update_partner_applications_updated_at BEFORE UPDATE ON partner_applications
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_receipts_updated_at BEFORE UPDATE ON receipts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Row Level Security (RLS) Policies
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE businesses ENABLE ROW LEVEL SECURITY;
@@ -192,6 +225,8 @@ ALTER TABLE invite_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE check_ins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE trusted_contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partner_applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE receipts ENABLE ROW LEVEL SECURITY;
 
 -- Users policies
 CREATE POLICY "Users can view their own profile"
@@ -344,3 +379,47 @@ CREATE POLICY "Admins can update partner applications"
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
+
+-- Reviews policies
+CREATE POLICY "Anyone authenticated can read reviews"
+  ON reviews FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Users can insert their reviews"
+  ON reviews FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their reviews"
+  ON reviews FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their reviews"
+  ON reviews FOR DELETE
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+-- Receipts policies
+CREATE POLICY "Users can read their receipts"
+  ON receipts FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert receipts"
+  ON receipts FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their receipts"
+  ON receipts FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their receipts"
+  ON receipts FOR DELETE
+  TO authenticated
+  USING (auth.uid() = user_id);

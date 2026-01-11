@@ -7,15 +7,15 @@ import { MindsetLog } from '@/features/cognitive-support/components/MindsetLog'
 import { GuiltyReminderWidget } from '@/features/contacts/components/GuiltyReminderWidget'
 import { PartnerDirectoryWidget } from '@/features/partners/components/PartnerDirectoryWidget'
 
+import { format } from 'date-fns'
+import { demoAppointments } from '@/lib/demo-data'
+
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } = { user: null } } = await supabase.auth.getUser()
 
-  // TEST MODE: Allow access without auth
-  // Default profile for testing
-  // Default profile for testing
   let profile: { full_name: string; role: 'admin' | 'cohort' | 'community' } = {
-    full_name: 'Test User',
+    full_name: 'Test Scout',
     role: 'admin'
   }
 
@@ -25,184 +25,109 @@ export default async function DashboardPage() {
       .select('*')
       .eq('id', user.id)
       .single()
-
-    if (userProfile) {
-      profile = userProfile
-    }
+    if (userProfile) profile = userProfile
   }
 
-  // TEST MODE: Get appointments if user exists, otherwise empty
+  // Get next appointment
   const { data: appointments } = user
     ? await supabase
       .from('appointments')
       .select('*, business:businesses(*)')
       .eq('user_id', user.id)
+      .eq('status', 'confirmed')
       .order('scheduled_date', { ascending: true })
-      .limit(5)
+      .limit(1)
     : { data: [] }
 
-  // Calculate attendance streak for cohort members
-  let attendanceStreak = 0
-  let totalCompleted = 0
-  if (user && profile?.role === 'cohort') {
-    const { data: completedAppointments } = await supabase
-      .from('appointments')
-      .select('scheduled_date')
-      .eq('user_id', user.id)
-      .eq('status', 'completed')
-      .order('scheduled_date', { ascending: false })
+  const nextAppt = (appointments && appointments[0]) || (!user ? demoAppointments[0] : null)
 
-    if (completedAppointments && completedAppointments.length > 0) {
-      totalCompleted = completedAppointments.length
-      // Simple streak calculation - consecutive completed appointments
-      let streak = 0
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      for (let i = 0; i < completedAppointments.length; i++) {
-        const apptDate = new Date(completedAppointments[i].scheduled_date)
-        apptDate.setHours(0, 0, 0, 0)
-        const daysDiff = Math.floor((today.getTime() - apptDate.getTime()) / (1000 * 60 * 60 * 24))
-
-        if (daysDiff === i) {
-          streak++
-        } else {
-          break
-        }
-      }
-      attendanceStreak = streak
-    }
-  }
-
-  const quickActions = [
-    { href: '/dashboard/schedule', label: 'Book Appointment', icon: Calendar, color: 'bg-blue-500' },
-    { href: '/dashboard/partners', label: 'Find Partners', icon: Building2, color: 'bg-green-500' },
+  const abilities = [
+    { href: '/dashboard/schedule', label: 'Book Appointment', icon: Calendar, color: 'text-blue-400', glow: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:border-blue-500/50' },
+    { href: '/dashboard/partners', label: 'Partner Network', icon: Building2, color: 'text-emerald-400', glow: 'hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:border-emerald-500/50' },
   ]
 
   if (profile?.role === 'cohort' || profile?.role === 'admin') {
-    quickActions.push(
-      { href: '/dashboard/vouchers', label: 'My Vouchers', icon: Ticket, color: 'bg-purple-500' },
-      { href: '/dashboard/crisis', label: 'Crisis Support', icon: AlertCircle, color: 'bg-red-500' }
+    abilities.push(
+      { href: '/dashboard/vouchers', label: 'Vouchers', icon: Ticket, color: 'text-purple-400', glow: 'hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:border-purple-500/50' },
+      { href: '/dashboard/resources', label: 'Crisis Support', icon: AlertCircle, color: 'text-red-400', glow: 'hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:border-red-500/50' }
     )
   }
 
-
-  // ... existing code ...
-
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          Welcome back, {profile?.full_name || 'User'}!
+    <div className="space-y-8 animate-fade-up">
+      {/* Hero Section: "Mission Brief" */}
+      <div className="border-b border-white/5 pb-6 animate-border-marquee rounded-xl p-6 bg-zinc-900/50">
+        <h2 className="text-xs font-mono text-emerald-500/70 tracking-[0.2em] mb-2 uppercase">Protocol Initiated</h2>
+        <h1 className="text-4xl md:text-5xl font-serif text-white tracking-tight">
+          Welcome back, {profile?.full_name?.split(' ')[0] || 'Scout'}.
         </h1>
-        <p className="text-gray-600">
-          Here's what's happening with your appointments and services.
-        </p>
+        {nextAppt ? (
+          <p className="mt-2 text-zinc-400 font-mono text-sm flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            Next Signal: {nextAppt.business?.name} ({new Date(nextAppt.scheduled_date).toLocaleDateString()})
+          </p>
+        ) : (
+          <p className="mt-2 text-zinc-500 text-lg">Systems online. Ready for your next move.</p>
+        )}
       </div>
 
-      {/* PRIME: Guilty Reminder Widget (Top Priority) */}
+      {/* Primary Priority: Guilty Reminder */}
       <GuiltyReminderWidget />
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {quickActions.map((action) => {
-          const Icon = action.icon
-          return (
-            <Link key={action.href} href={action.href}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                <CardContent className="p-6">
-                  <div className={`${action.color} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold">{action.label}</h3>
-                </CardContent>
-              </Card>
-            </Link>
-          )
-        })}
-      </div>
+      {/* Main Grid */}
+      <div className="grid lg:grid-cols-3 gap-8">
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* LEFT COL: Appointments & Progress */}
-        <div className="space-y-8">
-          {profile?.role === 'cohort' && (attendanceStreak > 0 || totalCompleted > 0) && (
-            <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Flame className="w-6 h-6 text-orange-600" />
-                  <span>Your Progress</span>
-                </CardTitle>
-                <CardDescription>Track your engagement and attendance</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-orange-100 p-4 rounded-lg">
-                      <Flame className="w-8 h-8 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Attendance Streak</p>
-                      <p className="text-3xl font-bold text-orange-600">{attendanceStreak}</p>
-                      <p className="text-xs text-gray-500">consecutive</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-indigo-100 p-4 rounded-lg">
-                      <Trophy className="w-8 h-8 text-indigo-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Total Completed</p>
-                      <p className="text-3xl font-bold text-indigo-600">{totalCompleted}</p>
-                      <p className="text-xs text-gray-500">appointments</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {appointments && appointments.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Appointments</CardTitle>
-                <CardDescription>Your next scheduled visits</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {appointments.map((appointment: any) => (
-                    <div
-                      key={appointment.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div>
-                        <h4 className="font-semibold">{appointment.business?.name}</h4>
-                        <p className="text-sm text-gray-600">
-                          {new Date(appointment.scheduled_date).toLocaleDateString()} at{' '}
-                          {appointment.scheduled_time}
-                        </p>
+        {/* Left Column: Abilities (2/3 width) */}
+        <div className="lg:col-span-2 space-y-6">
+          <h3 className="text-xs font-mono text-zinc-400 uppercase tracking-widest pl-1">Available Abilities</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {abilities.map((ability) => {
+              const Icon = ability.icon
+              return (
+                <Link key={ability.href} href={ability.href}>
+                  <div className={`glass-panel p-6 rounded-xl transition-all duration-300 border-white/10 group ${ability.glow} animate-border-marquee relative overflow-hidden`}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 rounded-lg bg-zinc-900/80 border border-white/10 group-hover:bg-zinc-800 transition-colors">
+                        <Icon className={`w-6 h-6 ${ability.color}`} />
                       </div>
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                        {appointment.status}
+                      <span className="text-[10px] font-mono text-zinc-300 group-hover:text-white transition-colors uppercase border border-white/10 px-2 py-0.5 rounded">
+                        Active
                       </span>
                     </div>
-                  ))}
+                    <h3 className="text-lg font-medium text-zinc-100 group-hover:text-white transition-colors">
+                      {ability.label}
+                    </h3>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* Progress / Stats Block (Condensed) */}
+          {(profile?.role === 'cohort') && (
+            <div className="glass-panel p-6 rounded-xl mt-8">
+              <div className="flex items-center gap-4">
+                <div className="bg-orange-500/10 p-3 rounded-full">
+                  <Flame className="w-6 h-6 text-orange-500" />
                 </div>
-                <div className="mt-4">
-                  <Link href="/dashboard/schedule">
-                    <Button variant="outline" className="w-full">
-                      View All Appointments
-                    </Button>
-                  </Link>
+                <div>
+                  <h4 className="text-sm font-medium text-white">Engagement Streak</h4>
+                  <p className="text-xs text-zinc-400">Keep the momentum flow.</p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="ml-auto text-2xl font-mono text-orange-400 font-bold">
+                  XXX Days
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* RIGHT COL: Mindset Log */}
-        <div className="space-y-8 lg:h-full">
+        {/* Right Column: HUD (Mindset) */}
+        <div className="space-y-6">
+          <h3 className="text-xs font-mono text-zinc-500 uppercase tracking-widest pl-1">Cognitive State</h3>
           <MindsetLog />
-          {/* Partner Directory moved to dedicated /partners page to reduce dashboard clutter */}
         </div>
+
       </div>
     </div>
   )

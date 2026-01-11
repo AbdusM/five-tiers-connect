@@ -1,18 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Zap, User, Building2, Ticket, AlertCircle } from 'lucide-react'
+import { isDemoMode, setDemoMode } from '@/lib/demo-mode'
 
 export default function DevModePage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
   const supabase = createClient()
+  const [demoEnabled, setDemoEnabled] = useState(false)
+
+  useEffect(() => {
+    setDemoEnabled(isDemoMode())
+  }, [])
 
   const enableAdminAccess = async () => {
     setLoading(true)
@@ -111,6 +117,42 @@ export default function DevModePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-indigo-600" />
+                Demo Mode (No Auth/Data)
+              </CardTitle>
+              <CardDescription>
+                Toggle canned data for partners, booking, vouchers, and check-ins. Great for fast demos.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">
+                  Status: {demoEnabled ? 'Enabled' : 'Disabled'}
+                </span>
+                <Badge variant={demoEnabled ? 'default' : 'secondary'}>
+                  {demoEnabled ? 'On' : 'Off'}
+                </Badge>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  const next = !demoEnabled
+                  setDemoMode(next)
+                  setDemoEnabled(next)
+                }}
+              >
+                {demoEnabled ? 'Disable Demo Mode' : 'Enable Demo Mode'}
+              </Button>
+              <p className="text-xs text-gray-500">
+                Demo mode shows sample partners, appointments, vouchers, and check-ins without Supabase.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5" />
                 Quick Access
               </CardTitle>
@@ -172,7 +214,7 @@ export default function DevModePage() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-blue-200 bg-blue-50">
+        <Card className="border-2 border-blue-200 bg-blue-50" data-testid="testing-resources-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-blue-600" />

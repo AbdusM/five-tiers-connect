@@ -29,13 +29,13 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-transparent flex flex-col md:flex-row">
       <SidebarNav userRole={userRole} />
 
       <div className="flex-1 flex flex-col min-h-screen md:ml-72 transition-all duration-300">
         <MobileNav userRole={userRole} />
 
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 bg-gray-50/50">
+        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
           <div className="max-w-5xl mx-auto w-full space-y-6">
             {children}
           </div>
