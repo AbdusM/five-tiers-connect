@@ -1,4 +1,4 @@
-import { Phone, Mail, Trash2, Users, Star, AlertCircle, CheckCircle, Bell } from 'lucide-react'
+import { Phone, Mail, Trash2, Users, Star, AlertCircle, CheckCircle, Bell, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Contact } from '@/lib/services/contact-service'
@@ -70,7 +70,14 @@ export function ContactCard({ contact, onDelete, onCall }: ContactCardProps) {
                     {/* Header */}
                     <div>
                         <div className="flex justify-between items-start pr-2">
-                            <h3 className="text-xl font-bold text-zinc-50 leading-tight">{contact.name}</h3>
+                            <div className="flex items-center gap-1.5">
+                                <h3 className="text-xl font-bold text-zinc-50 leading-tight">{contact.name}</h3>
+                                {contact.verified && (
+                                    <div className="text-blue-400" title="Verified Partner">
+                                        <ShieldCheck className="w-5 h-5 fill-blue-500/20" />
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Origin Story */}

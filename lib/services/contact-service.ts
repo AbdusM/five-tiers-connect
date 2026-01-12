@@ -11,6 +11,7 @@ export type Contact = {
     tags: string[]
     origin?: string
     notes?: string
+    verified?: boolean
 }
 
 const MOCK_CONTACTS: Contact[] = [
@@ -24,7 +25,8 @@ const MOCK_CONTACTS: Contact[] = [
         last_contact: '2025-10-15T10:00:00Z',
         frequency: 'weekly',
         tags: ['Tech', 'Career', 'Resume'],
-        origin: 'Philly Tech Meetup'
+        origin: 'Philly Tech Meetup',
+        verified: true
     },
     {
         id: '2',

@@ -40,6 +40,14 @@ export default async function DashboardLayout({
             {children}
           </div>
         </main>
+
+        {/* Emergency Disclaimer Footer */}
+        <footer className="py-4 px-6 text-center border-t border-neutral-200 dark:border-white/5 bg-neutral-100/50 dark:bg-black/20">
+          <p className="text-[10px] md:text-xs text-neutral-500 dark:text-zinc-500 font-medium">
+            For immediate life-threatening emergencies, dial <span className="text-red-600 dark:text-red-400 font-bold">911</span>.
+            For mental health crisis, dial <span className="text-indigo-600 dark:text-indigo-400 font-bold">988</span>.
+          </p>
+        </footer>
       </div>
     </div>
   )

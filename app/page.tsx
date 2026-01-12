@@ -84,8 +84,17 @@ export default function Home() {
       </div>
 
       {/* Footer minimal */}
-      <footer className="py-8 text-center text-zinc-600 text-sm font-mono uppercase tracking-widest">
-        Five Tiers Connect © 2026
+      <footer className="py-12 border-t border-white/5 bg-neutral-950">
+        <div className="container mx-auto px-6 flex flex-col items-center justify-center space-y-4">
+          <div className="flex items-center gap-2 text-neutral-400 font-medium">
+            <span>Five Tiers Connect © 2026</span>
+            <span className="text-neutral-700">•</span>
+            <span className="text-neutral-500">Operating System for Opportunity</span>
+          </div>
+          <div className="text-xs text-neutral-600 uppercase tracking-widest font-mono">
+            Powered by <span className="text-indigo-500 font-bold">We Up Platform</span>
+          </div>
+        </div>
       </footer>
     </div>
   );

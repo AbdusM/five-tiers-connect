@@ -144,6 +144,21 @@ export function SidebarNav({ userRole = 'community' }: { userRole?: string }) {
 
             {/* Footer / User Profile Area */}
             <div className="p-4 border-t border-white/10 bg-zinc-900/50">
+                {/* Role Indicator */}
+                <div className={`mb-4 px-3 py-2 rounded-lg border flex items-center justify-between ${userRole === 'cohort' || userRole === 'admin'
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                    : 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                    }`}>
+                    <span className="text-[10px] uppercase tracking-wider font-bold">
+                        {userRole === 'cohort' || userRole === 'admin' ? 'Cohort Member' : 'Community Access'}
+                    </span>
+                    {userRole === 'cohort' || userRole === 'admin' ? (
+                        <div className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+                    ) : (
+                        <div className="h-2 w-2 rounded-full bg-blue-400" />
+                    )}
+                </div>
+
                 <Link href="/dev-mode">
                     <div className="w-full mb-3 rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-200 hover:border-emerald-400/40 hover:text-white transition-colors">
                         Help & Docs
