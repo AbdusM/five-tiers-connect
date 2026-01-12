@@ -8,12 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { createClient } from '@/lib/supabase/client'
-import { 
+import {
   ArrowLeft,
-  Phone, 
+  Phone,
   Mail,
-  MapPin, 
-  Clock, 
+  MapPin,
+  Clock,
   Calendar,
   Navigation,
   Share2,
@@ -32,21 +32,21 @@ export default function PartnerDetailPage() {
   const router = useRouter()
   const params = useParams()
   const businessId = params.id as string
-  
+
   const [business, setBusiness] = useState<Business | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [shareStatus, setShareStatus] = useState<'idle' | 'sharing' | 'success' | 'error'>('idle')
   const [shareMessage, setShareMessage] = useState<string>('')
   const shareTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const [reviews, setReviews] = useState<Array<{ id: string; rating: number; text: string; created_at?: string }>>([])
+  const [reviews, setReviews] = useState<Array<{ id: string; rating: number; text?: string; created_at?: string }>>([])
   const [reviewText, setReviewText] = useState('')
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [reviewSuccess, setReviewSuccess] = useState(false)
 
   const supabase = createClient()
-  
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -321,15 +321,15 @@ export default function PartnerDetailPage() {
                 <div>
                   <CardTitle className="text-2xl md:text-3xl mb-2">{business.name}</CardTitle>
                   <div className="flex flex-wrap gap-2">
-                    <Badge 
+                    <Badge
                       variant={business.type === 'barbershop' ? 'default' : 'secondary'}
                       className="text-sm px-3 py-1"
                     >
                       {business.type}
                     </Badge>
                     {business.is_youth_friendly && (
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className="bg-green-50 text-green-700 border-green-200 text-sm px-3 py-1"
                       >
                         Youth-Friendly
@@ -368,11 +368,10 @@ export default function PartnerDetailPage() {
                 )}
               </Button>
               {shareMessage && (
-                <div className={`absolute top-full left-0 mt-2 p-3 rounded-lg shadow-lg z-50 min-w-[200px] ${
-                  shareStatus === 'success' 
-                    ? 'bg-green-50 border border-green-200 text-green-800' 
+                <div className={`absolute top-full left-0 mt-2 p-3 rounded-lg shadow-lg z-50 min-w-[200px] ${shareStatus === 'success'
+                    ? 'bg-green-50 border border-green-200 text-green-800'
                     : 'bg-red-50 border border-red-200 text-red-800'
-                }`}>
+                  }`}>
                   <div className="flex items-center gap-2">
                     {shareStatus === 'success' ? (
                       <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
@@ -497,7 +496,7 @@ export default function PartnerDetailPage() {
               Book Appointment
             </Link>
           </Button>
-          
+
           {business.phone && (
             <Button
               variant="outline"
@@ -570,7 +569,7 @@ export default function PartnerDetailPage() {
                 onChange={(e) => setReviewRating(Number(e.target.value))}
                 className="border rounded-md p-2 text-sm"
               >
-                {[5,4,3,2,1].map((r) => (
+                {[5, 4, 3, 2, 1].map((r) => (
                   <option key={r} value={r}>{r} stars</option>
                 ))}
               </select>

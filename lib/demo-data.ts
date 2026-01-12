@@ -1,7 +1,9 @@
 import { format } from 'date-fns'
-import type { Business } from '@/types/database'
+import type { Business, Appointment, Voucher, CheckIn, Receipt, Review } from '@/types/database'
 
-export const demoBusinesses: any[] = [
+const now = new Date().toISOString()
+
+export const demoBusinesses: Business[] = [
   {
     id: 'demo-1',
     name: 'Fresh Cuts Barbershop',
@@ -12,6 +14,9 @@ export const demoBusinesses: any[] = [
     zip: '19104',
     phone: '(215) 555-0101',
     email: 'phillycuts@example.com',
+    owner_id: 'demo-owner-1',
+    created_at: now,
+    updated_at: now,
     is_active: true,
     is_youth_friendly: true,
     hours: {
@@ -33,6 +38,9 @@ export const demoBusinesses: any[] = [
     zip: '19106',
     phone: '(215) 555-0202',
     email: 'community@example.com',
+    owner_id: 'demo-owner-2',
+    created_at: now,
+    updated_at: now,
     is_active: true,
     is_youth_friendly: true,
     hours: {
@@ -53,6 +61,9 @@ export const demoBusinesses: any[] = [
     state: 'PA',
     zip: '19102',
     phone: '215-981-3700',
+    owner_id: 'demo-owner-3',
+    created_at: now,
+    updated_at: now,
     is_active: true,
     is_youth_friendly: true,
   },
@@ -65,6 +76,9 @@ export const demoBusinesses: any[] = [
     state: 'PA',
     zip: '19123',
     phone: '215-555-0400',
+    owner_id: 'demo-owner-4',
+    created_at: now,
+    updated_at: now,
     is_active: true,
     is_youth_friendly: true,
   },
@@ -77,6 +91,9 @@ export const demoBusinesses: any[] = [
     state: 'PA',
     zip: '19130',
     phone: '215-555-0500',
+    owner_id: 'demo-owner-5',
+    created_at: now,
+    updated_at: now,
     is_active: true,
     is_youth_friendly: true,
   },
@@ -89,6 +106,9 @@ export const demoBusinesses: any[] = [
     state: 'PA',
     zip: '19130',
     phone: '215-555-0600',
+    owner_id: 'demo-owner-6',
+    created_at: now,
+    updated_at: now,
     is_active: true,
     is_youth_friendly: true,
   },
@@ -101,12 +121,15 @@ export const demoBusinesses: any[] = [
     state: 'PA',
     zip: '19109',
     phone: '215-555-0300',
+    owner_id: 'demo-owner-7',
+    created_at: now,
+    updated_at: now,
     is_active: true,
     is_youth_friendly: true,
   },
 ]
 
-export const demoAppointments = [
+export const demoAppointments: (Appointment & { business?: { name: string } })[] = [
   {
     id: 'demo-appt-1',
     business_id: 'demo-legal',
@@ -116,6 +139,8 @@ export const demoAppointments = [
     status: 'confirmed',
     service_type: 'Expungement Consultation',
     user_id: 'demo-user',
+    created_at: now,
+    updated_at: now,
   },
   {
     id: 'demo-appt-2',
@@ -126,6 +151,8 @@ export const demoAppointments = [
     status: 'confirmed',
     service_type: 'Classic Cut',
     user_id: 'demo-user',
+    created_at: now,
+    updated_at: now,
   },
   {
     id: 'demo-appt-3',
@@ -136,6 +163,8 @@ export const demoAppointments = [
     status: 'confirmed',
     service_type: 'Annual Wellness Check',
     user_id: 'demo-user',
+    created_at: now,
+    updated_at: now,
   },
   {
     id: 'demo-appt-4',
@@ -146,69 +175,79 @@ export const demoAppointments = [
     status: 'completed',
     service_type: 'Application Intake',
     user_id: 'demo-user',
+    created_at: now,
+    updated_at: now,
   },
 ]
 
-export const demoVouchers = [
+export const demoVouchers: (Voucher & { business?: { name: string } })[] = [
   {
     id: 'demo-v1',
-    business: { name: 'Tech Impact Training' },
+    business_id: 'demo-tech', // Derived from name map
     amount: 500,
-    created_at: new Date().toISOString(),
+    created_at: now,
+    updated_at: now,
     expires_at: new Date(Date.now() + 86400000 * 90).toISOString(),
     status: 'active',
     cohort_member_id: 'demo-user',
   },
   {
     id: 'demo-v2',
-    business: { name: 'Community Legal Services' },
+    business_id: 'demo-legal',
     amount: 150,
-    created_at: new Date().toISOString(),
+    created_at: now,
+    updated_at: now,
     expires_at: new Date(Date.now() + 86400000 * 60).toISOString(),
     status: 'active',
     cohort_member_id: 'demo-user',
   },
   {
     id: 'demo-v-housing',
+    business_id: 'demo-housing',
     business: { name: 'Housing First Initiative' },
     amount: 200,
-    created_at: new Date().toISOString(),
+    created_at: now,
+    updated_at: now,
     expires_at: new Date(Date.now() + 86400000 * 30).toISOString(),
     status: 'active',
     cohort_member_id: 'demo-user',
   },
   {
     id: 'demo-v-health',
-    business: { name: 'Vybe Urgent Care' },
+    business_id: 'demo-health',
     amount: 50,
-    created_at: new Date().toISOString(),
+    created_at: now,
+    updated_at: now,
     expires_at: new Date(Date.now() + 86400000 * 45).toISOString(),
     status: 'active',
     cohort_member_id: 'demo-user',
   },
   {
     id: 'demo-v-empl',
-    business: { name: 'Second Chance Employment' },
+    business_id: 'demo-empl',
     amount: 75,
-    created_at: new Date().toISOString(),
+    created_at: now,
+    updated_at: now,
     expires_at: new Date(Date.now() + 86400000 * 60).toISOString(),
     status: 'active',
     cohort_member_id: 'demo-user',
   },
   {
     id: 'demo-v3',
-    business: { name: 'Fresh Cuts Barbershop' },
+    business_id: 'demo-1',
     amount: 25,
     created_at: '2025-09-01T10:00:00Z',
+    updated_at: now,
     expires_at: '2025-12-31T23:59:59Z',
     status: 'active',
     cohort_member_id: 'demo-user',
   },
   {
     id: 'demo-v4',
-    business: { name: 'Elite Styles Salon' },
+    business_id: 'demo-2',
     amount: 40,
     created_at: '2025-08-15T09:00:00Z',
+    updated_at: now,
     expires_at: '2025-11-30T23:59:59Z',
     status: 'used',
     used_at: '2025-10-01T14:00:00Z',
@@ -216,46 +255,54 @@ export const demoVouchers = [
   },
 ]
 
-export const demoCheckIns = [
+export const demoCheckIns: CheckIn[] = [
   {
     id: 'demo-check-1',
+    user_id: 'demo-user',
     type: 'requested',
     notes: 'Need help preparing for job interview next week.',
-    requested_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
+    requested_at: now,
+    created_at: now,
+    updated_at: now,
   },
   {
     id: 'demo-check-2',
+    user_id: 'demo-user',
     type: 'completed',
     notes: 'Discussed housing paperwork.',
     requested_at: '2025-09-20T14:00:00Z',
     completed_at: '2025-09-21T15:00:00Z',
     created_at: '2025-09-20T14:00:00Z',
+    updated_at: '2025-09-21T15:00:00Z',
   },
 ]
 
-export const demoReceipts = [
+export const demoReceipts: Receipt[] = [
   {
     id: 'demo-r1',
+    user_id: 'demo-user',
     merchant: 'Fresh Cuts',
     amount: 25,
     date: '2025-10-10',
     category: 'Grooming',
     status: 'processed',
-    attachment: null,
+    created_at: now,
+    updated_at: now,
   },
 ]
 
-export const demoReviews = [
+export const demoReviews: Review[] = [
   {
     id: 'demo-review-1',
     business_id: 'demo-1',
+    user_id: 'demo-user',
     rating: 5,
     text: 'Best fade I’ve had in years. Super friendly.',
     created_at: '2025-09-01T12:00:00Z',
   },
   {
     id: 'demo-review-2',
+    user_id: 'demo-user',
     business_id: 'demo-2',
     rating: 4,
     text: 'Clean shop, quick service, loved the style.',

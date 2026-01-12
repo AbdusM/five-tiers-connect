@@ -11,9 +11,33 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Receipt as ReceiptType, Appointment, Voucher } from '@/types/database'
+import { Receipt as ReceiptIcon, Upload, Save, Calendar, Tag } from 'lucide-react'
+
+// Extended types for joined data
+type ReceiptWithRelations = ReceiptType & {
+  appointment?: {
+    id: string
+    scheduled_date: string
+    scheduled_time: string
+    business: { name: string } | null
+  } | null
+  voucher?: {
+    id: string
+    amount: number
+    status: string
+  } | null
+}
+
+type AppointmentWithBusiness = Appointment & {
+  business: { name: string } | null
+}
+
+type VoucherWithBusiness = Voucher & {
+  business: { name: string } | null
+}
 
 export default function ReceiptsPage() {
-  const [receipts, setReceipts] = useState<ReceiptType[]>([])
+  const [receipts, setReceipts] = useState<ReceiptWithRelations[]>([])
   const [uploading, setUploading] = useState(false)
   const [merchant, setMerchant] = useState('')
   const [amount, setAmount] = useState<string>('')
@@ -21,8 +45,8 @@ export default function ReceiptsPage() {
   const [category, setCategory] = useState('')
   const [status, setStatus] = useState<'pending' | 'processed'>('pending')
   const [error, setError] = useState<string | null>(null)
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [vouchers, setVouchers] = useState<Voucher[]>([])
+  const [appointments, setAppointments] = useState<AppointmentWithBusiness[]>([])
+  const [vouchers, setVouchers] = useState<VoucherWithBusiness[]>([])
   const [selectedAppointment, setSelectedAppointment] = useState<string>('none')
   const [selectedVoucher, setSelectedVoucher] = useState<string>('none')
 
@@ -39,7 +63,7 @@ export default function ReceiptsPage() {
     if (typeof window === 'undefined') return
     const load = async () => {
       if (isDemoMode()) {
-        setReceipts(demoReceipts as unknown as ReceiptType[])
+        setReceipts(demoReceipts as ReceiptWithRelations[])
         return
       }
       const { data: { user } } = await supabase.auth.getUser()
@@ -53,23 +77,23 @@ export default function ReceiptsPage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (receiptsData) setReceipts(receiptsData as ReceiptType[])
+      if (receiptsData) setReceipts(receiptsData as ReceiptWithRelations[])
 
       const { data: appts } = await supabase
         .from('appointments')
-        .select('id, scheduled_date, scheduled_time, business:businesses(name)')
+        .select('*, business:businesses(name)')
         .eq('user_id', user.id)
         .order('scheduled_date', { ascending: false })
         .limit(20)
-      if (appts) setAppointments(appts as unknown as Appointment[])
+      if (appts) setAppointments(appts as AppointmentWithBusiness[])
 
       const { data: voucherData } = await supabase
         .from('vouchers')
-        .select('id, amount, status, business:businesses(name)')
+        .select('*, business:businesses(name)')
         .eq('cohort_member_id', user.id)
         .order('created_at', { ascending: false })
         .limit(20)
-      if (voucherData) setVouchers(voucherData as unknown as Voucher[])
+      if (voucherData) setVouchers(voucherData as VoucherWithBusiness[])
     }
     load()
   }, [supabase])
@@ -182,115 +206,195 @@ export default function ReceiptsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12 animate-fade-up">
+      {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold text-gray-900">Receipts</h1>
-        <p className="text-gray-600 mt-2">Upload receipts, review details, and attach to vouchers or appointments.</p>
+        <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+          <ReceiptIcon className="w-10 h-10 text-orange-400" />
+          Receipts
+        </h1>
+        <p className="text-zinc-400 mt-2 text-lg max-w-2xl">
+          Upload and track your expenses. Attach receipts to vouchers or appointments for complete record keeping.
+        </p>
       </div>
 
-      <Card>
+      {/* Upload Card */}
+      <Card className="glass-panel border-white/10">
         <CardHeader>
-          <CardTitle>Upload a receipt</CardTitle>
-          <CardDescription>Photo or PDF. We’ll scan and let you edit details.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Input type="file" accept="image/*,.pdf" onChange={handleUpload} disabled={uploading} />
-          <p className="text-xs text-gray-500">
-            In Test/Demo mode this creates a placeholder receipt without uploading.
-          </p>
-          <Button disabled={uploading}>{uploading ? 'Uploading...' : 'Done'}</Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Your receipts</CardTitle>
-          <CardDescription>Recently added receipts</CardDescription>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Upload className="w-5 h-5 text-indigo-400" />
+            Upload Receipt
+          </CardTitle>
+          <CardDescription className="text-zinc-400">
+            Photo or PDF. We’ll scan and let you edit details.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <h4 className="text-lg font-semibold">Add receipt details</h4>
-            {error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                {error}
+          <div className="border-2 border-dashed border-zinc-700 hover:border-indigo-500/50 rounded-xl p-8 text-center transition-colors bg-zinc-900/20 group cursor-pointer relative">
+            <Input
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleUpload}
+              disabled={uploading}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-4 rounded-full bg-zinc-800 group-hover:bg-indigo-500/10 transition-colors">
+                <Upload className="w-8 h-8 text-zinc-400 group-hover:text-indigo-400" />
               </div>
-            )}
-            <Input
-              placeholder="Merchant"
-              value={merchant}
-              onChange={(e) => setMerchant(e.target.value)}
-            />
-            <Input
-              placeholder="Amount"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-            <Input
-              placeholder="Date (YYYY-MM-DD)"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-            <Input
-              placeholder="Category (optional)"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            />
-            <Select value={status} onValueChange={(v) => setStatus(v as 'pending' | 'processed')}>
-              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processed">Processed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedAppointment} onValueChange={setSelectedAppointment}>
-              <SelectTrigger><SelectValue placeholder="Attach to appointment (optional)" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                {appointments.map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {(a as any).business?.name || 'Appointment'} · {a.scheduled_date} {a.scheduled_time}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedVoucher} onValueChange={setSelectedVoucher}>
-              <SelectTrigger><SelectValue placeholder="Attach to voucher (optional)" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                {vouchers.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
-                    Voucher {v.id.slice(0, 4)} · ${v.amount} · {v.status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={handleSave} disabled={uploading}>
-              Save Receipt
-            </Button>
-          </div>
-
-          {receipts.length === 0 ? (
-            <div className="text-center text-gray-500 py-10">
-              No receipts yet. Upload one to get started.
+              <p className="text-sm font-medium text-zinc-300">
+                Click to upload or drag and drop
+              </p>
+              <p className="text-xs text-zinc-500">
+                In Test/Demo mode this creates a placeholder
+              </p>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {receipts.map((r) => (
-                <div key={r.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-semibold text-gray-900">{r.merchant || 'Receipt'}</p>
-                    <p className="text-sm text-gray-600">
-                      {r.date} · ${r.amount ?? 0}{r.category ? ` · ${r.category}` : ''}
-                    </p>
-                  </div>
-                  <Badge variant="secondary">{r.status || 'processed'}</Badge>
-                </div>
-              ))}
+          </div>
+          {uploading && (
+            <div className="text-center text-indigo-400 text-sm animate-pulse">
+              Processing upload...
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Manual Entry & List */}
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Editor Form */}
+        <div className="lg:col-span-1">
+          <Card className="glass-panel border-white/10 sticky top-6">
+            <CardHeader>
+              <CardTitle className="text-white text-lg">Receipt Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {error && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+              <div className="space-y-2">
+                <Input
+                  placeholder="Merchant Name"
+                  value={merchant}
+                  onChange={(e) => setMerchant(e.target.value)}
+                  className="bg-zinc-900/50 border-white/10 text-white placeholder:text-zinc-500"
+                />
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500">$</span>
+                  <Input
+                    placeholder="0.00"
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="pl-7 bg-zinc-900/50 border-white/10 text-white placeholder:text-zinc-500"
+                  />
+                </div>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="bg-zinc-900/50 border-white/10 text-white placeholder:text-zinc-500"
+                />
+                <Input
+                  placeholder="Category (e.g. Grooming)"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="bg-zinc-900/50 border-white/10 text-white placeholder:text-zinc-500"
+                />
+
+                <div className="pt-2 space-y-2">
+                  <Select value={selectedAppointment} onValueChange={setSelectedAppointment}>
+                    <SelectTrigger className="bg-zinc-900/50 border-white/10 text-zinc-300">
+                      <SelectValue placeholder="Link to Appointment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Appointment</SelectItem>
+                      {appointments.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.business?.name} · {a.scheduled_date}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={selectedVoucher} onValueChange={setSelectedVoucher}>
+                    <SelectTrigger className="bg-zinc-900/50 border-white/10 text-zinc-300">
+                      <SelectValue placeholder="Link to Voucher" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Voucher</SelectItem>
+                      {vouchers.map((v) => (
+                        <SelectItem key={v.id} value={v.id}>
+                          ${v.amount} Voucher ({v.status})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  onClick={handleSave}
+                  disabled={uploading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white mt-4"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Receipt
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* List View */}
+        <div className="lg:col-span-2 space-y-4">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            Recent Receipts
+            <Badge className="bg-zinc-800 text-zinc-400 hover:bg-zinc-800">{receipts.length}</Badge>
+          </h3>
+
+          {receipts.length === 0 ? (
+            <Card className="glass-panel border-white/10 border-dashed">
+              <CardContent className="py-12 text-center text-zinc-500">
+                <ReceiptIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No receipts uploaded yet.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {receipts.map((r) => (
+                <div key={r.id} className="glass-panel p-4 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/10 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-400">
+                      <ReceiptIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white">{r.merchant || 'Unknown Merchant'}</h4>
+                      <div className="flex items-center gap-2 text-sm text-zinc-400">
+                        <span>{r.date}</span>
+                        {r.category && (
+                          <>
+                            <span>•</span>
+                            <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-xs">{r.category}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono text-lg font-bold text-white">${r.amount?.toFixed(2)}</p>
+                    <Badge variant="outline" className={`mt-1 text-xs px-2 py-0 border-0 ${r.status === 'processed'
+                      ? 'bg-emerald-500/10 text-emerald-400'
+                      : 'bg-yellow-500/10 text-yellow-400'
+                      }`}>
+                      {r.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

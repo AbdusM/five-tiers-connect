@@ -20,7 +20,7 @@ import {
   Receipt
 } from 'lucide-react'
 import { isDemoMode } from '@/lib/demo-mode'
-import { demoAppointments, demoVouchers, demoCheckIns, demoReceipts } from '@/lib/demo-data'
+import { demoAppointments, demoVouchers, demoCheckIns, demoReceipts, demoBusinesses } from '@/lib/demo-data'
 import { ResilienceGraph } from '@/features/timeline/components/ResilienceGraph'
 
 interface TimelineEvent {
@@ -78,7 +78,7 @@ export default function TimelinePage() {
           id: v.id,
           type: 'voucher',
           title: `$${v.amount} Voucher`,
-          description: v.business?.name,
+          description: demoBusinesses.find(b => b.id === v.business_id)?.name || 'Service voucher',
           date: new Date(v.created_at),
           status: v.status === 'used' ? 'completed' : 'in-progress',
           icon: <Ticket className="w-5 h-5" />,
@@ -109,7 +109,7 @@ export default function TimelinePage() {
           type: 'receipt',
           title: `Receipt: ${r.merchant}`,
           description: `$${r.amount} - ${r.category}`,
-          date: new Date(r.date),
+          date: new Date(r.date || r.created_at || new Date().toISOString()),
           status: 'completed',
           icon: <Receipt className="w-5 h-5" />,
           color: 'text-orange-400'
@@ -162,7 +162,7 @@ export default function TimelinePage() {
         id: v.id,
         type: 'voucher',
         title: `$${v.amount} Voucher`,
-        description: v.business?.name || 'Service voucher',
+        description: (v as any).business?.name || 'Service voucher',
         date: new Date(v.created_at),
         status: v.status === 'used' ? 'completed' : v.status === 'active' ? 'in-progress' : 'completed',
         icon: <Ticket className="w-5 h-5" />,

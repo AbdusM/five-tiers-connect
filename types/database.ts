@@ -18,7 +18,7 @@ export interface User {
 export interface Business {
   id: string
   name: string
-  type: 'barbershop' | 'salon'
+  type: 'barbershop' | 'salon' | 'Legal' | 'Education' | 'Health' | 'Housing' | 'Employment'
   address: string
   city: string
   state: string

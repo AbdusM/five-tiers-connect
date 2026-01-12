@@ -10,11 +10,16 @@ import { format } from 'date-fns'
 import { Ticket, CheckCircle2, Calendar, Building2, ArrowRight, Sparkles, Clock } from 'lucide-react'
 import { isDemoMode } from '@/lib/demo-mode'
 import { demoVouchers, demoBusinesses } from '@/lib/demo-data'
+import { Voucher, Business } from '@/types/database'
 import Link from 'next/link'
 
+type VoucherWithBusiness = Voucher & {
+  business: Business | null
+}
+
 export default function VouchersPage() {
-  const [vouchers, setVouchers] = useState<any[]>([])
-  const [businesses, setBusinesses] = useState<any[]>([])
+  const [vouchers, setVouchers] = useState<VoucherWithBusiness[]>([])
+  const [businesses, setBusinesses] = useState<Business[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'used' | 'expired'>('all')
 
@@ -28,8 +33,8 @@ export default function VouchersPage() {
     setLoading(true)
     // Demo mode: use canned vouchers
     if (typeof window !== 'undefined' && isDemoMode()) {
-      setVouchers(demoVouchers as any[])
-      setBusinesses(demoBusinesses as any[])
+      setVouchers(demoVouchers as VoucherWithBusiness[]) // safe cast as demoVouchers are compliant
+      setBusinesses(demoBusinesses as Business[])
       setLoading(false)
       return
     }
@@ -38,8 +43,8 @@ export default function VouchersPage() {
 
     if (!user) {
       console.log('No user found, using demo data')
-      setVouchers(demoVouchers as any[])
-      setBusinesses(demoBusinesses as any[])
+      setVouchers(demoVouchers as VoucherWithBusiness[])
+      setBusinesses(demoBusinesses as Business[])
       setLoading(false)
       return
     }
@@ -51,7 +56,7 @@ export default function VouchersPage() {
       .eq('cohort_member_id', user.id)
       .order('created_at', { ascending: false })
 
-    if (vouchersData) setVouchers(vouchersData)
+    if (vouchersData) setVouchers(vouchersData as VoucherWithBusiness[])
 
     // Load businesses
     const { data: businessesData } = await supabase
@@ -203,7 +208,7 @@ export default function VouchersPage() {
                         {voucher.amount}
                       </h3>
                       <p className="text-sm text-zinc-300 font-medium">
-                        {voucher.serviceType || 'Service Voucher'}
+                        Service Voucher
                       </p>
                       <p className="text-xs text-zinc-500 mt-1">
                         {voucher.business?.name || 'Unknown Business'}
