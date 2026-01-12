@@ -84,8 +84,8 @@ export default function Home() {
       </div>
 
       {/* Footer minimal */}
-      <footer className="py-8 text-center text-zinc-800 text-sm font-mono uppercase tracking-widest">
-        We Up © 2026
+      <footer className="py-8 text-center text-zinc-600 text-sm font-mono uppercase tracking-widest">
+        Five Tiers Connect © 2026
       </footer>
     </div>
   );
