@@ -73,36 +73,12 @@ export default function SchedulePage() {
       if (businessesError) {
         // DEV MODE: Mock businesses on error
         if (process.env.NODE_ENV === 'development') {
-          const mockBusinesses = [
-            { id: '1', name: 'Fresh Cuts Barbershop', type: 'barbershop', is_active: true },
-            { id: '2', name: 'Elite Styles Salon', type: 'salon', is_active: true },
-          ] as any
-          setBusinesses(mockBusinesses)
+          // Use centralized demo data instead of hardcoded mocks
+          setBusinesses(demoBusinesses)
 
           // ALSO SET MOCK APPOINTMENTS IF NONE EXIST
           if (appointments.length === 0) {
-            setAppointments([
-              {
-                id: 'm1',
-                business_id: '1',
-                business: { name: 'Fresh Cuts Barbershop' },
-                scheduled_date: '2025-10-15',
-                scheduled_time: '14:30',
-                status: 'confirmed',
-                service_type: 'Mentorship Check-in',
-                user_id: 'mock-user'
-              },
-              {
-                id: 'm2',
-                business_id: '2',
-                business: { name: 'Elite Styles Salon' },
-                scheduled_date: '2025-10-22',
-                scheduled_time: '10:00',
-                status: 'pending',
-                service_type: 'Job Interview Prep',
-                user_id: 'mock-user'
-              }
-            ] as any)
+            setAppointments(demoAppointments as any)
           }
         } else {
           throw businessesError
