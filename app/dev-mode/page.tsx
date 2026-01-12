@@ -26,11 +26,11 @@ export default function DevModePage() {
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (!user) {
         // Create a test session
         const { data: authData, error: authError } = await supabase.auth.signInAnonymously()
-        
+
         if (authError && authError.message.includes('not enabled')) {
           // If anonymous auth not enabled, prompt for signup
           setMessage('Please sign up first, then we can enable admin mode')
@@ -72,41 +72,44 @@ export default function DevModePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-            <Zap className="w-12 h-12 text-indigo-500" />
+    <div className="min-h-screen bg-neutral-950 p-6 md:p-12 font-sans selection:bg-indigo-500/30">
+      <div className="max-w-4xl mx-auto space-y-10">
+        <div className="text-center space-y-4">
+          <h1 className="text-5xl md:text-6xl font-black text-white flex items-center justify-center gap-4 tracking-tight">
+            <Zap className="w-12 h-12 md:w-16 md:h-16 text-indigo-500 fill-indigo-500/20" />
             Beta Testing Mode
           </h1>
-          <p className="text-xl text-gray-600">
-            Access all features for testing
+          <p className="text-xl text-neutral-400 max-w-2xl mx-auto font-medium">
+            Access all features for testing and validation.
           </p>
         </div>
 
-        <Card className="border-2 border-indigo-200 bg-indigo-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-6 h-6 text-indigo-600" />
+        {/* Primary Admin Access Card */}
+        <Card className="border border-indigo-500/30 bg-indigo-950/10 backdrop-blur-sm overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-3 text-2xl text-white">
+              <Zap className="w-6 h-6 text-indigo-400 fill-indigo-400/20" />
               Enable Admin Access
             </CardTitle>
-            <CardDescription>
-              Get admin access to test all features
+            <CardDescription className="text-indigo-200/60 text-base">
+              Get full admin privileges to test analytics, implementation, and partner features.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6 pt-6">
             <Button
               onClick={enableAdminAccess}
               size="lg"
-              className="w-full h-14 text-lg"
+              className="w-full h-16 text-lg font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.2)] transition-all hover:scale-[1.01]"
               disabled={loading}
             >
-              {loading ? 'Enabling...' : 'Enable Admin Access'}
+              {loading ? 'Enabling Access...' : 'Enable Admin Access'}
             </Button>
             {message && (
-              <div className={`p-3 rounded-lg ${
-                message.startsWith('✅') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
+              <div className={`p-4 rounded-xl border flex items-center gap-3 font-medium animate-in fade-in slide-in-from-top-2 ${message.startsWith('✅')
+                ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-400'
+                : 'bg-red-950/30 border-red-500/30 text-red-400'
+                }`}>
                 {message}
               </div>
             )}
@@ -114,28 +117,29 @@ export default function DevModePage() {
         </Card>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card>
+          {/* Demo Mode Card */}
+          <Card className="bg-neutral-900 border-neutral-800 hover:border-neutral-700 transition-colors">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-indigo-600" />
-                Demo Mode (No Auth/Data)
+              <CardTitle className="flex items-center gap-3 text-white">
+                <Zap className="w-5 h-5 text-amber-500" />
+                Demo Mode
               </CardTitle>
-              <CardDescription>
-                Toggle canned data for partners, booking, vouchers, and check-ins. Great for fast demos.
+              <CardDescription className="text-neutral-400">
+                Toggle canned data for offline demos.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">
-                  Status: {demoEnabled ? 'Enabled' : 'Disabled'}
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-950 border border-neutral-800">
+                <span className="text-sm font-medium text-neutral-300">
+                  Status: <span className={demoEnabled ? 'text-amber-400' : 'text-neutral-500'}>{demoEnabled ? 'Enabled' : 'Disabled'}</span>
                 </span>
-                <Badge variant={demoEnabled ? 'default' : 'secondary'}>
+                <Badge variant={demoEnabled ? 'default' : 'secondary'} className={demoEnabled ? 'bg-amber-500 text-black hover:bg-amber-400' : 'bg-neutral-800 text-neutral-400'}>
                   {demoEnabled ? 'On' : 'Off'}
                 </Badge>
               </div>
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full border-neutral-700 text-neutral-200 hover:bg-neutral-800 hover:text-white"
                 onClick={() => {
                   const next = !demoEnabled
                   setDemoMode(next)
@@ -144,99 +148,105 @@ export default function DevModePage() {
               >
                 {demoEnabled ? 'Disable Demo Mode' : 'Enable Demo Mode'}
               </Button>
-              <p className="text-xs text-gray-500">
-                Demo mode shows sample partners, appointments, vouchers, and check-ins without Supabase.
-              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          {/* Quick Access Card */}
+          <Card className="bg-neutral-900 border-neutral-800 hover:border-neutral-700 transition-colors">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-3 text-white">
+                <User className="w-5 h-5 text-blue-500" />
                 Quick Access
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start" onClick={() => router.push('/dashboard')}>
-                Dashboard
-              </Button>
-              <Button variant="outline" className="w-full justify-start" onClick={() => router.push('/dashboard/schedule')}>
-                Schedule
-              </Button>
-              <Button variant="outline" className="w-full justify-start" onClick={() => router.push('/dashboard/partners')}>
-                Partners
-              </Button>
-              <Button variant="outline" className="w-full justify-start" onClick={() => router.push('/dashboard/analytics')}>
-                Analytics
-              </Button>
+              {[
+                { label: 'Dashboard', path: '/dashboard' },
+                { label: 'Schedule', path: '/dashboard/schedule' },
+                { label: 'Partners', path: '/dashboard/partners' },
+                { label: 'Analytics', path: '/dashboard/analytics' }
+              ].map((link) => (
+                <Button
+                  key={link.path}
+                  variant="ghost"
+                  className="w-full justify-start text-neutral-400 hover:text-white hover:bg-neutral-800 h-10 px-4"
+                  onClick={() => router.push(link.path)}
+                >
+                  <span className="w-2 h-2 rounded-full bg-neutral-700 mr-3 group-hover:bg-white transition-colors" />
+                  {link.label}
+                </Button>
+              ))}
             </CardContent>
           </Card>
 
-          <Card>
+          {/* Test Features Card */}
+          <Card className="bg-neutral-900 border-neutral-800 hover:border-neutral-700 transition-colors">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-3 text-white">
+                <Building2 className="w-5 h-5 text-emerald-500" />
                 Test Features
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="space-y-2">
-                <Badge variant="outline" className="w-full justify-start">Cohort Vouchers</Badge>
-                <Badge variant="outline" className="w-full justify-start">Check-In Requests</Badge>
-                <Badge variant="outline" className="w-full justify-start">Crisis Support</Badge>
-                <Badge variant="outline" className="w-full justify-start">Trusted Contacts</Badge>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-2">
+                {['Cohort Vouchers', 'Check-In Requests', 'Crisis Support', 'Trusted Contacts'].map((feature) => (
+                  <div key={feature} className="flex items-center gap-3 p-2 rounded-md hover:bg-neutral-800/50 transition-colors">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+                    <span className="text-sm text-neutral-300">{feature}</span>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
+
+          {/* Seed Data Card */}
+          <Card className="bg-neutral-900 border-neutral-800 hover:border-neutral-700 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-white">
+                <Ticket className="w-5 h-5 text-pink-500" />
+                Seed Test Data
+              </CardTitle>
+              <CardDescription className="text-neutral-400">
+                Create test businesses and invite codes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="w-full border-dashed border-neutral-700 text-neutral-300 hover:border-neutral-500 hover:bg-neutral-800 hover:text-white"
+                onClick={() => {
+                  window.open('http://localhost:3000/api/seed', '_blank')
+                }}
+              >
+                Run Seed Script (Test Data)
+              </Button>
+            </CardContent>
+          </Card>
+
         </div>
 
-        <Card>
+        {/* Documentation Card */}
+        <Card className="border border-blue-900/30 bg-blue-950/10" data-testid="testing-resources-card">
           <CardHeader>
-            <CardTitle>Seed Test Data</CardTitle>
-            <CardDescription>
-              Create test businesses and invite codes for testing
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                window.open('http://localhost:3000/api/seed', '_blank')
-              }}
-            >
-              Run Seed Script (opens in new tab)
-            </Button>
-            <p className="text-sm text-gray-500 mt-2">
-              Or run: <code className="bg-gray-100 px-2 py-1 rounded">npm run seed</code>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-blue-200 bg-blue-50" data-testid="testing-resources-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-3 text-blue-400">
+              <AlertCircle className="w-5 h-5" />
               Testing Resources
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-blue-300/60">
               Documentation for comprehensive testing
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-900">📖 Documentation:</p>
-              <ul className="text-sm text-gray-600 space-y-1 ml-4 list-disc">
-                <li><strong>STAKEHOLDER_GUIDE.md</strong> - Complete testing guide with step-by-step instructions</li>
-                <li><strong>USER_STORIES.md</strong> - All user stories with acceptance criteria</li>
-                <li><strong>QUICK_START.md</strong> - 3-step quick start guide</li>
-                <li><strong>docs/PARTNER_DIRECTORY.md</strong> - Partner directory feature documentation</li>
-              </ul>
+              <p className="text-sm font-bold text-blue-200 uppercase tracking-wider">Reference Docs:</p>
+              <div className="grid sm:grid-cols-2 gap-2">
+                <div className="p-3 rounded bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-mono">STAKEHOLDER_GUIDE.md</div>
+                <div className="p-3 rounded bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 font-mono">USER_STORIES.md</div>
+              </div>
             </div>
-            <div className="pt-2 border-t">
-              <p className="text-xs text-gray-500">
-                All user stories are implemented and ready for testing. See USER_STORIES.md for complete list.
+            <div className="pt-4 border-t border-blue-500/10">
+              <p className="text-xs text-blue-400/60 text-center">
+                All features ready for testing.
               </p>
             </div>
           </CardContent>
@@ -245,3 +255,5 @@ export default function DevModePage() {
     </div>
   )
 }
+
+
