@@ -56,16 +56,18 @@ export function PauseOverlay({ isOpen, onClose }: PauseOverlayProps) {
 
     return (
         <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+            {/* Close Button - Enhanced Visibility */}
             <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-4 right-4 h-12 w-12 rounded-full"
+                className="absolute top-6 right-6 h-12 w-12 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 shadow-sm z-50 text-neutral-900 dark:text-neutral-100"
                 onClick={onClose}
             >
-                <X className="w-8 h-8" />
+                <X className="w-6 h-6" />
+                <span className="sr-only">Close</span>
             </Button>
 
-            <div className="max-w-md w-full space-y-8 text-center">
+            <div className="max-w-md w-full space-y-8 text-center pt-10">
 
                 {/* STEP 1: BREATHE */}
                 {step === 'breathe' && (
@@ -120,6 +122,10 @@ export function PauseOverlay({ isOpen, onClose }: PauseOverlayProps) {
                                 onClick={() => handleEmotionSelect('conflict')}
                             />
                         </div>
+
+                        <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground" onClick={onClose}>
+                            Cancel & Return to Dashboard
+                        </Button>
                     </div>
                 )}
 
@@ -152,9 +158,14 @@ export function PauseOverlay({ isOpen, onClose }: PauseOverlayProps) {
                             ))}
                         </div>
 
-                        <Button variant="outline" className="w-full" onClick={() => setStep('assess')}>
-                            Go Back
-                        </Button>
+                        <div className="flex flex-col gap-3 pt-4">
+                            <Button size="lg" className="w-full" onClick={onClose}>
+                                Return to Dashboard
+                            </Button>
+                            <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setStep('assess')}>
+                                Go Back
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>
