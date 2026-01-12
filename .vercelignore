@@ -1,0 +1,12 @@
+# Vercel Ignore File
+# Exclude testing files
+tests/
+test-results/
+playwright-report/
+playwright.config.ts
+
+# Exclude documentation and dev scripts
+docs/
+scripts/
+*.md
+.github/
