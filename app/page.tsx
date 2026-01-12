@@ -47,7 +47,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pt-8 w-full sm:w-auto">
             <Link href="/dashboard" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto h-12 md:h-14 px-8 text-base md:text-lg font-bold rounded-full bg-white text-neutral-900 hover:bg-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all hover:scale-105 active:scale-95">
+              <Button size="lg" className="w-full sm:w-auto h-12 md:h-14 px-8 text-base md:text-lg font-black rounded-full bg-white text-black hover:bg-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all hover:scale-105 active:scale-95">
                 Launch Dashboard <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
