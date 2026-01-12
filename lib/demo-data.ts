@@ -445,6 +445,7 @@ export const demoVouchers: (Voucher & { business?: { name: string } })[] = [
   {
     id: 'demo-v1',
     business_id: 'demo-tech', // Derived from name map
+    business: { name: 'Tech Impact Training' },
     amount: 500,
     created_at: now,
     updated_at: now,
@@ -455,6 +456,7 @@ export const demoVouchers: (Voucher & { business?: { name: string } })[] = [
   {
     id: 'demo-v2',
     business_id: 'demo-legal',
+    business: { name: 'Community Legal Services' },
     amount: 150,
     created_at: now,
     updated_at: now,
@@ -476,6 +478,7 @@ export const demoVouchers: (Voucher & { business?: { name: string } })[] = [
   {
     id: 'demo-v-health',
     business_id: 'demo-health',
+    business: { name: 'Vybe Urgent Care' },
     amount: 50,
     created_at: now,
     updated_at: now,
@@ -486,6 +489,7 @@ export const demoVouchers: (Voucher & { business?: { name: string } })[] = [
   {
     id: 'demo-v-empl',
     business_id: 'demo-empl',
+    business: { name: 'Second Chance Employment' },
     amount: 75,
     created_at: now,
     updated_at: now,
@@ -496,6 +500,7 @@ export const demoVouchers: (Voucher & { business?: { name: string } })[] = [
   {
     id: 'demo-v3',
     business_id: 'demo-1',
+    business: { name: 'Fresh Cuts Barbershop' },
     amount: 25,
     created_at: '2025-09-01T10:00:00Z',
     updated_at: now,
@@ -506,6 +511,7 @@ export const demoVouchers: (Voucher & { business?: { name: string } })[] = [
   {
     id: 'demo-v4',
     business_id: 'demo-2',
+    business: { name: 'Elite Styles Salon' },
     amount: 40,
     created_at: '2025-08-15T09:00:00Z',
     updated_at: now,
